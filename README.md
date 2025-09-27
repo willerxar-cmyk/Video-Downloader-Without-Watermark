@@ -2,11 +2,9 @@
 
 Um microsistema ultra-funcional em Python para download de vídeos do **TikTok, YouTube e Instagram** com a melhor qualidade possível, remoção de metadados e salvamento na pasta output.
 
-**🛍️ Shopee:** Suporte implementado com extrator customizado!
-
 ## 🚀 Características
 
-- ✅ **Multi-plataforma:** TikTok, YouTube, Instagram, Shopee
+- ✅ **Multi-plataforma:** TikTok, YouTube, Instagram
 - ✅ **Melhor qualidade:** Download na melhor qualidade disponível (até 1080p)
 - ✅ **Sem metadados:** Remoção completa de metadados dos vídeos
 - ✅ **Organizado:** Salvamento automático na pasta `output`
@@ -14,7 +12,7 @@ Um microsistema ultra-funcional em Python para download de vídeos do **TikTok, 
 - ✅ **Validação inteligente:** Detecta e valida URLs automaticamente
 - ✅ **Interface amigável:** Modo interativo contínuo
 - ✅ **Robusto:** Tratamento avançado de erros
-- ✅ **Extrator customizado:** Shopee com tecnologia própria
+
 
 ## 📋 Pré-requisitos
 

@@ -136,7 +136,6 @@ def test_multiplatform_downloader():
                 ("https://www.tiktok.com/@user/video/123", "TikTok"),
                 ("https://www.youtube.com/watch?v=123", "YouTube"),
                 ("https://www.instagram.com/p/123", "Instagram"),
-                ("https://shopee.com.br/produto-i.123.456", "Shopee"),
                 ("https://unknown.com/video/123", "Unknown"),
             ]
 
@@ -147,20 +146,7 @@ def test_multiplatform_downloader():
                 else:
                     print(f"  ❌ {url}: esperado {expected}, detectado {detected}")
 
-            # Testar detecção específica do Shopee
-            print("✅ Testando detecção de URLs Shopee...")
-            shopee_urls = [
-                "https://shopee.com.br/produto-i.123.456",
-                "https://shopee.com.my/product-i.123.456",
-                "https://shopee.ph/product-i.123.456",
-                "https://shopee.sg/product-i.123.456",
-            ]
 
-            for url in shopee_urls:
-                if downloader.is_shopee_url(url):
-                    print(f"  ✅ Shopee detectado: {url[:50]}...")
-                else:
-                    print(f"  ❌ Shopee não detectado: {url}")
 
         return True
 
@@ -211,7 +197,7 @@ def test_file_permissions():
 
 def main():
     """Função principal de teste."""
-    print("🧪 TESTE DO SISTEMA MULTI-PLATFORM DOWNLOADER (TikTok, YouTube, Instagram, Shopee)")
+    print("🧪 TESTE DO SISTEMA MULTI-PLATFORM DOWNLOADER (TikTok, YouTube, Instagram)")
     print("=" * 50)
 
     tests = [

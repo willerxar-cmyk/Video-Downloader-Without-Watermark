@@ -133,61 +133,7 @@ class MultiPlatformDownloader:
             print(f"Error downloading video: {e}")
             return None
 
-    def download_shopee_video(self, url: str) -> Optional[str]:
-        """Download video from Shopee product page."""
-        try:
-            print(f"🛍️ Processing Shopee URL: {url}")
 
-            # Get video info from Shopee
-            info = self.shopee_extractor.get_video_info(url)
-            if not info:
-                print("❌ No videos found on this Shopee product page")
-                return None
-
-            video_urls = info.get('video_urls', [])
-            if not video_urls:
-                print("❌ No video URLs found")
-                return None
-
-            print(f"📥 Found {len(video_urls)} video(s)")
-            print(f"📝 Product: {info.get('title', 'Unknown')}")
-            print(f"🏪 Shop: {info.get('uploader', 'Unknown')}")
-
-            # Download the first video (or all videos if multiple)
-            downloaded_files = []
-            for i, video_url in enumerate(video_urls, 1):
-                print(f"\n📥 Downloading video {i}/{len(video_urls)}...")
-
-                # Create filename
-                safe_title = re.sub(r'[^\w\s-]', '', info.get('title', 'shopee_video'))[:50]
-                safe_shop = re.sub(r'[^\w\s-]', '', info.get('uploader', 'unknown'))[:20]
-                video_id = info.get('id', 'unknown')
-                filename = f"shopee_{safe_shop}_{safe_title}_{video_id}_{i}.mp4"
-
-                output_path = self.output_dir / filename
-
-                # Download video
-                if self.shopee_extractor.download_video(video_url, str(output_path)):
-                    # Remove metadata if ffmpeg is available
-                    clean_path = self.output_dir / f"clean_{filename}"
-                    if self.remove_metadata(output_path, clean_path):
-                        output_path.unlink()  # Remove original
-                        downloaded_files.append(str(clean_path))
-                        print(f"✅ Video saved: {clean_path}")
-                    else:
-                        downloaded_files.append(str(output_path))
-                        print(f"✅ Video saved (metadata not removed): {output_path}")
-                else:
-                    print(f"❌ Failed to download video {i}")
-
-            if downloaded_files:
-                return downloaded_files[0]  # Return first downloaded file
-            else:
-                return None
-
-        except Exception as e:
-            print(f"❌ Error downloading Shopee video: {e}")
-            return None
 
     def _get_platform_options(self, platform: str, temp_path: str) -> Dict[str, Any]:
         """Get platform-specific yt-dlp options."""
@@ -274,7 +220,7 @@ def main():
     """Main function for interactive usage."""
     print("🎬 Multi-Platform Video Downloader")
     print("=" * 50)
-    print("✅ Supported: TikTok, YouTube, Instagram, Shopee")
+    print("✅ Supported: TikTok, YouTube, Instagram")
     print("📁 Videos will be saved to: output/")
     print("🔄 Press Ctrl+C to exit")
     print("=" * 50)
@@ -329,9 +275,6 @@ def main():
                         print("   📷 Instagram:")
                         print("      - https://www.instagram.com/p/123")
                         print("      - https://www.instagram.com/reel/123")
-                        print("   🛍️ Shopee:")
-                        print("      - https://shopee.com.br/produto-i.123.456")
-                        print("      - https://shopee.com.my/product-i.123.456")
 
             print(f"\n🔄 Processing: {url}")
             result = downloader.process_video(url)
