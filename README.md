@@ -118,14 +118,6 @@ https://www.instagram.com/reel/ABC123
 https://www.instagram.com/tv/ABC123
 ```
 
-**🛍️ Shopee:**
-```
-https://shopee.com.br/produto-exemplo-i.123.456
-https://shopee.com.my/produto-exemplo-i.123.456
-https://shopee.ph/produto-exemplo-i.123.456
-https://shopee.sg/produto-exemplo-i.123.456
-(Extrator customizado - detecta produtos e baixa vídeos quando disponíveis)
-```
 
 ### Uso Programático
 
