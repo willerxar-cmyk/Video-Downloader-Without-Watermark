@@ -12,10 +12,42 @@ import subprocess
 import tempfile
 import shutil
 import random
+import glob
 from pathlib import Path
 from typing import Optional, Dict, Any
 import yt_dlp
 import ffmpeg
+
+# Auto-configure FFmpeg PATH
+def setup_ffmpeg_path():
+    """Automatically add FFmpeg to PATH if found in common locations."""
+    # Check if ffmpeg is already available
+    try:
+        subprocess.run(['ffmpeg', '-version'], capture_output=True, check=True)
+        return True
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        pass
+
+    # Common FFmpeg installation paths
+    possible_paths = [
+        os.path.join(os.environ.get('LOCALAPPDATA', ''), 'Microsoft', 'WinGet', 'Packages', 'Gyan.FFmpeg*', 'ffmpeg-*', 'bin'),
+        os.path.join(os.environ.get('PROGRAMFILES', ''), 'ffmpeg', 'bin'),
+        os.path.join(os.environ.get('PROGRAMFILES(X86)', ''), 'ffmpeg', 'bin'),
+        'C:\\ffmpeg\\bin',
+    ]
+
+    for pattern in possible_paths:
+        matches = glob.glob(pattern)
+        for path in matches:
+            if os.path.exists(os.path.join(path, 'ffmpeg.exe')):
+                os.environ['PATH'] = os.environ['PATH'] + os.pathsep + path
+                print(f"✅ FFmpeg found and added to PATH: {path}")
+                return True
+
+    return False
+
+# Setup FFmpeg on import
+setup_ffmpeg_path()
 
 
 class MultiPlatformDownloader:
@@ -177,33 +209,27 @@ class MultiPlatformDownloader:
             print(f"   🎨 Contrast: {contrast:.3f}x")
             print(f"   🌈 Saturation: {saturation:.3f}x")
 
-            # Build complex filter chain
-            filter_complex = (
-                f"[0:v]"
-                f"eq=brightness={brightness}:contrast={contrast}:saturation={saturation},"
-                f"hue=h={hue},"
-                f"pad=iw+{border_size*2}:ih+{border_size*2}:{border_size}:{border_size}:white"
-                f"[v]"
-            )
+            # Apply filters using ffmpeg-python
+            stream = ffmpeg.input(input_path)
+            video = stream.video.filter('eq', brightness=brightness, contrast=contrast, saturation=saturation)
+            video = video.filter('hue', h=hue)
+            video = video.filter('pad',
+                                 width=f'iw+{border_size*2}',
+                                 height=f'ih+{border_size*2}',
+                                 x=border_size,
+                                 y=border_size,
+                                 color='white')
+            audio = stream.audio
 
-            # Use ffmpeg with complex filters
             (
                 ffmpeg
-                .input(input_path)
-                .output(
-                    output_path,
-                    **{
-                        'filter_complex': filter_complex,
-                        'map': '[v]',
-                        'map': '0:a?',  # Copy audio if exists
-                        'c:a': 'copy',  # Copy audio codec
-                        'c:v': 'libx264',  # Re-encode video
-                        'preset': 'medium',  # Encoding speed
-                        'crf': '23',  # Quality (lower = better, 18-28 is good range)
-                        'map_metadata': '-1',  # Remove all metadata
-                        'movflags': '+faststart',  # Optimize for streaming
-                    }
-                )
+                .output(video, audio, output_path,
+                        vcodec='libx264',
+                        acodec='copy',
+                        preset='medium',
+                        crf='23',
+                        map_metadata='-1',
+                        movflags='+faststart')
                 .overwrite_output()
                 .run(quiet=True, capture_stdout=True, capture_stderr=True)
             )
