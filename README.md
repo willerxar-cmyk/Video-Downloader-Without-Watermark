@@ -1,18 +1,38 @@
-# Multi-Platform Video Downloader
+# Multi-Platform Video Downloader + Anti-Detection
 
-Um microsistema ultra-funcional em Python para download de vídeos do **TikTok, YouTube e Instagram** com a melhor qualidade possível, remoção de metadados e salvamento na pasta output.
+Um microsistema ultra-funcional em Python para download de vídeos do **TikTok, YouTube e Instagram** com a melhor qualidade possível, remoção de metadados e **processamento anti-detecção** para evitar identificação de vídeos duplicados.
 
 ## 🚀 Características
 
 - ✅ **Multi-plataforma:** TikTok, YouTube, Instagram
 - ✅ **Melhor qualidade:** Download na melhor qualidade disponível (até 1080p)
 - ✅ **Sem metadados:** Remoção completa de metadados dos vídeos
+- 🎨 **Anti-Detecção Avançada:**
+  - Bordas brancas aleatórias (8-20px)
+  - Ajustes aleatórios de brilho e contraste
+  - Variações de saturação de cores
+  - Leve alteração de matiz (hue)
+  - Cada vídeo processado é único
 - ✅ **Organizado:** Salvamento automático na pasta `output`
 - ✅ **Nomes limpos:** Arquivos com nomes organizados e seguros
 - ✅ **Validação inteligente:** Detecta e valida URLs automaticamente
 - ✅ **Interface amigável:** Modo interativo contínuo
 - ✅ **Robusto:** Tratamento avançado de erros
 
+## 🎯 Como Funciona o Sistema Anti-Detecção
+
+O sistema aplica modificações aleatórias em cada vídeo processado para evitar que plataformas como TikTok e Shopee detectem o vídeo como duplicado:
+
+1. **Bordas Brancas Aleatórias:** Adiciona uma borda branca de tamanho aleatório (8-20px) ao redor do vídeo
+2. **Ajustes de Cor Aleatórios:**
+   - Brilho: +2% a +8%
+   - Contraste: 1.02x a 1.08x
+   - Saturação: 0.98x a 1.05x
+   - Matiz: -0.02 a +0.02
+3. **Re-encoding:** O vídeo é re-encodado com H.264, garantindo que cada arquivo seja único
+4. **Remoção de Metadados:** Todos os metadados são removidos do arquivo final
+
+**Resultado:** Cada vídeo processado é tecnicamente único, evitando detecção de duplicatas.
 
 ## 📋 Pré-requisitos
 

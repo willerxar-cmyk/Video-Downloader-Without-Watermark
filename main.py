@@ -11,6 +11,7 @@ import re
 import subprocess
 import tempfile
 import shutil
+import random
 from pathlib import Path
 from typing import Optional, Dict, Any
 import yt_dlp
@@ -160,31 +161,62 @@ class MultiPlatformDownloader:
         return base_opts
     
     def remove_metadata(self, input_path: str, output_path: str) -> bool:
-        """Remove all metadata from video using ffmpeg."""
+        """Remove metadata and apply anti-detection modifications to video."""
         try:
-            print("Removing metadata...")
+            print("🎨 Processing video with anti-detection features...")
 
-            # Use ffmpeg to remove metadata
+            # Generate random parameters for uniqueness
+            border_size = random.randint(8, 20)  # Random border size
+            brightness = random.uniform(0.02, 0.08)  # Slight brightness adjustment
+            contrast = random.uniform(1.02, 1.08)  # Slight contrast adjustment
+            saturation = random.uniform(0.98, 1.05)  # Slight saturation adjustment
+            hue = random.uniform(-0.02, 0.02)  # Very slight hue shift
+
+            print(f"   🎯 Border size: {border_size}px")
+            print(f"   💡 Brightness: +{brightness:.3f}")
+            print(f"   🎨 Contrast: {contrast:.3f}x")
+            print(f"   🌈 Saturation: {saturation:.3f}x")
+
+            # Build complex filter chain
+            filter_complex = (
+                f"[0:v]"
+                f"eq=brightness={brightness}:contrast={contrast}:saturation={saturation},"
+                f"hue=h={hue},"
+                f"pad=iw+{border_size*2}:ih+{border_size*2}:{border_size}:{border_size}:white"
+                f"[v]"
+            )
+
+            # Use ffmpeg with complex filters
             (
                 ffmpeg
                 .input(input_path)
                 .output(
                     output_path,
-                    map_metadata=-1,  # Remove all metadata
-                    c='copy',         # Copy streams without re-encoding
-                    avoid_negative_ts='make_zero'
+                    **{
+                        'filter_complex': filter_complex,
+                        'map': '[v]',
+                        'map': '0:a?',  # Copy audio if exists
+                        'c:a': 'copy',  # Copy audio codec
+                        'c:v': 'libx264',  # Re-encode video
+                        'preset': 'medium',  # Encoding speed
+                        'crf': '23',  # Quality (lower = better, 18-28 is good range)
+                        'map_metadata': '-1',  # Remove all metadata
+                        'movflags': '+faststart',  # Optimize for streaming
+                    }
                 )
                 .overwrite_output()
-                .run(quiet=True, capture_stdout=True)
+                .run(quiet=True, capture_stdout=True, capture_stderr=True)
             )
 
+            print("   ✅ Anti-detection processing complete!")
             return True
 
         except ffmpeg.Error as e:
-            print(f"Error removing metadata: {e}")
+            error_msg = e.stderr.decode() if e.stderr else str(e)
+            print(f"❌ FFmpeg error: {error_msg}")
             return False
         except Exception as e:
-            print(f"Unexpected error: {e}")
+            print(f"❌ Unexpected error: {e}")
             return False
     
     def process_video(self, url: str) -> Optional[str]:
@@ -218,24 +250,29 @@ class MultiPlatformDownloader:
 
 def main():
     """Main function for interactive usage."""
-    print("🎬 Multi-Platform Video Downloader")
-    print("=" * 50)
+    print("🎬 Multi-Platform Video Downloader + Anti-Detection")
+    print("=" * 70)
     print("✅ Supported: TikTok, YouTube, Instagram")
     print("📁 Videos will be saved to: output/")
+    print("🎨 Anti-Detection Features:")
+    print("   • Random white borders (8-20px)")
+    print("   • Random brightness/contrast adjustments")
+    print("   • Random color saturation variations")
+    print("   • Complete metadata removal")
     print("🔄 Press Ctrl+C to exit")
-    print("=" * 50)
+    print("=" * 70)
 
     # Check if ffmpeg is available
     ffmpeg_available = True
     try:
         subprocess.run(['ffmpeg', '-version'], capture_output=True, check=True)
-        print("✅ FFmpeg detected - metadata will be removed")
+        print("✅ FFmpeg detected - Anti-detection processing enabled")
     except (subprocess.CalledProcessError, FileNotFoundError):
-        print("⚠️ FFmpeg not found - videos will be downloaded without metadata removal")
+        print("⚠️ FFmpeg not found - videos will be downloaded without processing")
         print("💡 Run 'install_ffmpeg.bat' to install FFmpeg")
         ffmpeg_available = False
 
-    print("=" * 50)
+    print("=" * 70)
 
     downloader = MultiPlatformDownloader()
 
