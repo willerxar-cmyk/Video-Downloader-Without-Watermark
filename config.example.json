@@ -1,0 +1,122 @@
+{
+  "_comment": "Arquivo de configuração do Multi-Platform Video Downloader + Anti-Detection",
+  
+  "anti_detection": {
+    "_comment": "Configurações de anti-detecção para evitar identificação de vídeos duplicados",
+    "enabled": true,
+    
+    "border": {
+      "_comment": "Configuração de bordas ao redor do vídeo",
+      "mode": "random",
+      "_mode_options": ["random", "fixed", "none"],
+      "_mode_description": {
+        "random": "Borda com tamanho aleatório entre random_min e random_max",
+        "fixed": "Borda com tamanho fixo definido em fixed_size",
+        "none": "Sem borda"
+      },
+      "fixed_size": 10,
+      "_fixed_size_description": "Tamanho da borda em pixels quando mode='fixed'",
+      "random_min": 8,
+      "_random_min_description": "Tamanho mínimo da borda quando mode='random'",
+      "random_max": 20,
+      "_random_max_description": "Tamanho máximo da borda quando mode='random'",
+      "color": "white",
+      "_color_description": "Cor da borda (white, black, red, blue, etc.)"
+    },
+    
+    "brightness": {
+      "_comment": "Ajuste de brilho do vídeo",
+      "enabled": true,
+      "_enabled_description": "true = aplicar ajuste, false = não aplicar",
+      "random_min": 0.02,
+      "_random_min_description": "Ajuste mínimo de brilho (+2%)",
+      "random_max": 0.08,
+      "_random_max_description": "Ajuste máximo de brilho (+8%)"
+    },
+    
+    "contrast": {
+      "_comment": "Ajuste de contraste do vídeo",
+      "enabled": true,
+      "random_min": 1.02,
+      "_random_min_description": "Multiplicador mínimo de contraste (1.02x)",
+      "random_max": 1.08,
+      "_random_max_description": "Multiplicador máximo de contraste (1.08x)"
+    },
+    
+    "saturation": {
+      "_comment": "Ajuste de saturação de cores do vídeo",
+      "enabled": true,
+      "random_min": 0.98,
+      "_random_min_description": "Multiplicador mínimo de saturação (0.98x)",
+      "random_max": 1.05,
+      "_random_max_description": "Multiplicador máximo de saturação (1.05x)"
+    },
+    
+    "hue": {
+      "_comment": "Ajuste de matiz (rotação de cores) do vídeo",
+      "enabled": true,
+      "random_min": -0.02,
+      "_random_min_description": "Rotação mínima de matiz",
+      "random_max": 0.02,
+      "_random_max_description": "Rotação máxima de matiz"
+    }
+  },
+  
+  "video": {
+    "_comment": "Configurações de encoding do vídeo",
+    "codec": "libx264",
+    "_codec_description": "Codec de vídeo (libx264, libx265, etc.)",
+    "preset": "medium",
+    "_preset_description": "Velocidade de encoding (ultrafast, fast, medium, slow, veryslow)",
+    "crf": "23",
+    "_crf_description": "Qualidade do vídeo (18-28, menor = melhor qualidade)"
+  },
+  
+  "output": {
+    "_comment": "Configurações de saída",
+    "directory": "output",
+    "_directory_description": "Pasta onde os vídeos serão salvos",
+    "remove_metadata": true,
+    "_remove_metadata_description": "Remover todos os metadados do vídeo"
+  },
+  
+  "_examples": {
+    "sem_borda": {
+      "border": {
+        "mode": "none"
+      }
+    },
+    "borda_fixa_15px": {
+      "border": {
+        "mode": "fixed",
+        "fixed_size": 15
+      }
+    },
+    "borda_random_grande": {
+      "border": {
+        "mode": "random",
+        "random_min": 20,
+        "random_max": 40
+      }
+    },
+    "sem_filtros_de_cor": {
+      "brightness": {"enabled": false},
+      "contrast": {"enabled": false},
+      "saturation": {"enabled": false},
+      "hue": {"enabled": false}
+    },
+    "qualidade_maxima": {
+      "video": {
+        "preset": "veryslow",
+        "crf": "18"
+      }
+    },
+    "processamento_rapido": {
+      "video": {
+        "preset": "ultrafast",
+        "crf": "28"
+      }
+    }
+  }
+}
+

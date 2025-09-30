@@ -13,6 +13,7 @@ import tempfile
 import shutil
 import random
 import glob
+import json
 from pathlib import Path
 from typing import Optional, Dict, Any
 import yt_dlp
@@ -51,11 +52,80 @@ setup_ffmpeg_path()
 
 
 class MultiPlatformDownloader:
-    def __init__(self, output_dir: str = "output"):
+    def __init__(self, output_dir: str = "output", config_path: str = "config.json"):
         """Initialize the multi-platform video downloader."""
-        self.output_dir = Path(output_dir)
+        self.config = self.load_config(config_path)
+        self.output_dir = Path(self.config.get('output', {}).get('directory', output_dir))
         self.output_dir.mkdir(exist_ok=True)
         self.temp_dir = Path(tempfile.mkdtemp())
+
+    def load_config(self, config_path: str) -> Dict[str, Any]:
+        """Load configuration from JSON file."""
+        default_config = {
+            "anti_detection": {
+                "enabled": True,
+                "border": {
+                    "mode": "random",
+                    "fixed_size": 10,
+                    "random_min": 8,
+                    "random_max": 20,
+                    "color": "white"
+                },
+                "brightness": {
+                    "enabled": True,
+                    "random_min": 0.02,
+                    "random_max": 0.08
+                },
+                "contrast": {
+                    "enabled": True,
+                    "random_min": 1.02,
+                    "random_max": 1.08
+                },
+                "saturation": {
+                    "enabled": True,
+                    "random_min": 0.98,
+                    "random_max": 1.05
+                },
+                "hue": {
+                    "enabled": True,
+                    "random_min": -0.02,
+                    "random_max": 0.02
+                }
+            },
+            "video": {
+                "codec": "libx264",
+                "preset": "medium",
+                "crf": "23"
+            },
+            "output": {
+                "directory": "output",
+                "remove_metadata": True
+            }
+        }
+
+        try:
+            if os.path.exists(config_path):
+                with open(config_path, 'r', encoding='utf-8') as f:
+                    user_config = json.load(f)
+                    # Merge user config with default config
+                    self._merge_config(default_config, user_config)
+                    print(f"✅ Configuration loaded from {config_path}")
+            else:
+                print(f"⚠️ Config file not found, using default settings")
+        except Exception as e:
+            print(f"⚠️ Error loading config: {e}, using default settings")
+
+        return default_config
+
+    def _merge_config(self, base: dict, update: dict) -> None:
+        """Recursively merge update dict into base dict."""
+        for key, value in update.items():
+            if key.startswith('_'):  # Skip comment fields
+                continue
+            if isinstance(value, dict) and key in base and isinstance(base[key], dict):
+                self._merge_config(base[key], value)
+            else:
+                base[key] = value
         
     def __del__(self):
         """Clean up temporary directory."""
@@ -195,39 +265,125 @@ class MultiPlatformDownloader:
     def remove_metadata(self, input_path: str, output_path: str) -> bool:
         """Remove metadata and apply anti-detection modifications to video."""
         try:
+            anti_detection = self.config.get('anti_detection', {})
+
+            if not anti_detection.get('enabled', True):
+                print("🎨 Processing video (anti-detection disabled)...")
+                # Simple metadata removal without filters
+                (
+                    ffmpeg
+                    .input(input_path)
+                    .output(output_path,
+                            vcodec='copy',
+                            acodec='copy',
+                            map_metadata='-1')
+                    .overwrite_output()
+                    .run(quiet=True, capture_stdout=True, capture_stderr=True)
+                )
+                print("   ✅ Metadata removed!")
+                return True
+
             print("🎨 Processing video with anti-detection features...")
 
-            # Generate random parameters for uniqueness
-            border_size = random.randint(8, 20)  # Random border size
-            brightness = random.uniform(0.02, 0.08)  # Slight brightness adjustment
-            contrast = random.uniform(1.02, 1.08)  # Slight contrast adjustment
-            saturation = random.uniform(0.98, 1.05)  # Slight saturation adjustment
-            hue = random.uniform(-0.02, 0.02)  # Very slight hue shift
+            # Get configuration
+            border_config = anti_detection.get('border', {})
+            brightness_config = anti_detection.get('brightness', {})
+            contrast_config = anti_detection.get('contrast', {})
+            saturation_config = anti_detection.get('saturation', {})
+            hue_config = anti_detection.get('hue', {})
+            video_config = self.config.get('video', {})
 
-            print(f"   🎯 Border size: {border_size}px")
-            print(f"   💡 Brightness: +{brightness:.3f}")
-            print(f"   🎨 Contrast: {contrast:.3f}x")
-            print(f"   🌈 Saturation: {saturation:.3f}x")
+            # Calculate border size based on mode
+            border_mode = border_config.get('mode', 'random')
+            if border_mode == 'none':
+                border_size = 0
+            elif border_mode == 'fixed':
+                border_size = border_config.get('fixed_size', 10)
+            else:  # random
+                border_size = random.randint(
+                    border_config.get('random_min', 8),
+                    border_config.get('random_max', 20)
+                )
+
+            # Calculate filter parameters
+            brightness = 0
+            if brightness_config.get('enabled', True):
+                brightness = random.uniform(
+                    brightness_config.get('random_min', 0.02),
+                    brightness_config.get('random_max', 0.08)
+                )
+
+            contrast = 1.0
+            if contrast_config.get('enabled', True):
+                contrast = random.uniform(
+                    contrast_config.get('random_min', 1.02),
+                    contrast_config.get('random_max', 1.08)
+                )
+
+            saturation = 1.0
+            if saturation_config.get('enabled', True):
+                saturation = random.uniform(
+                    saturation_config.get('random_min', 0.98),
+                    saturation_config.get('random_max', 1.05)
+                )
+
+            hue = 0
+            if hue_config.get('enabled', True):
+                hue = random.uniform(
+                    hue_config.get('random_min', -0.02),
+                    hue_config.get('random_max', 0.02)
+                )
+
+            # Display settings
+            if border_size > 0:
+                print(f"   🎯 Border: {border_size}px ({border_mode})")
+            else:
+                print(f"   🎯 Border: None")
+
+            if brightness != 0:
+                print(f"   💡 Brightness: +{brightness:.3f}")
+            if contrast != 1.0:
+                print(f"   🎨 Contrast: {contrast:.3f}x")
+            if saturation != 1.0:
+                print(f"   🌈 Saturation: {saturation:.3f}x")
+            if hue != 0:
+                print(f"   🎨 Hue: {hue:.3f}")
 
             # Apply filters using ffmpeg-python
             stream = ffmpeg.input(input_path)
-            video = stream.video.filter('eq', brightness=brightness, contrast=contrast, saturation=saturation)
-            video = video.filter('hue', h=hue)
-            video = video.filter('pad',
-                                 width=f'iw+{border_size*2}',
-                                 height=f'ih+{border_size*2}',
-                                 x=border_size,
-                                 y=border_size,
-                                 color='white')
+            video = stream.video
+
+            # Apply color filters if any are enabled
+            if brightness != 0 or contrast != 1.0 or saturation != 1.0:
+                video = video.filter('eq', brightness=brightness, contrast=contrast, saturation=saturation)
+
+            if hue != 0:
+                video = video.filter('hue', h=hue)
+
+            # Apply border if enabled
+            if border_size > 0:
+                border_color = border_config.get('color', 'white')
+                video = video.filter('pad',
+                                     width=f'iw+{border_size*2}',
+                                     height=f'ih+{border_size*2}',
+                                     x=border_size,
+                                     y=border_size,
+                                     color=border_color)
+
             audio = stream.audio
+
+            # Get video encoding settings
+            codec = video_config.get('codec', 'libx264')
+            preset = video_config.get('preset', 'medium')
+            crf = video_config.get('crf', '23')
 
             (
                 ffmpeg
                 .output(video, audio, output_path,
-                        vcodec='libx264',
+                        vcodec=codec,
                         acodec='copy',
-                        preset='medium',
-                        crf='23',
+                        preset=preset,
+                        crf=crf,
                         map_metadata='-1',
                         movflags='+faststart')
                 .overwrite_output()

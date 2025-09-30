@@ -1,0 +1,42 @@
+{
+  "anti_detection": {
+    "enabled": true,
+    "border": {
+      "mode": "random",
+      "fixed_size": 10,
+      "random_min": 8,
+      "random_max": 20,
+      "color": "white"
+    },
+    "brightness": {
+      "enabled": true,
+      "random_min": 0.02,
+      "random_max": 0.08
+    },
+    "contrast": {
+      "enabled": true,
+      "random_min": 1.02,
+      "random_max": 1.08
+    },
+    "saturation": {
+      "enabled": true,
+      "random_min": 0.98,
+      "random_max": 1.05
+    },
+    "hue": {
+      "enabled": true,
+      "random_min": -0.02,
+      "random_max": 0.02
+    }
+  },
+  "video": {
+    "codec": "libx264",
+    "preset": "medium",
+    "crf": "23"
+  },
+  "output": {
+    "directory": "output",
+    "remove_metadata": true
+  }
+}
+
